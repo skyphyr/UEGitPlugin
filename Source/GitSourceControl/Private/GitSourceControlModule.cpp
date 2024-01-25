@@ -30,6 +30,12 @@
 
 TArray<FString> FGitSourceControlModule::EmptyStringArray;
 
+namespace
+{
+    static const FName NAME_SourceControl( TEXT( "SourceControl" ) );
+    static const FName NAME_ContentBrowser( TEXT( "ContentBrowser" ) );
+}
+
 template<typename Type>
 static TSharedRef<IGitSourceControlWorker, ESPMode::ThreadSafe> CreateWorker()
 {
@@ -58,9 +64,9 @@ void FGitSourceControlModule::StartupModule()
 	GitSourceControlSettings.LoadSettings();
 
 	// Bind our revision control provider to the editor
-	IModularFeatures::Get().RegisterModularFeature( "SourceControl", &GitSourceControlProvider );
+    IModularFeatures::Get().RegisterModularFeature( NAME_SourceControl, &GitSourceControlProvider );
 
-	FContentBrowserModule& ContentBrowserModule = FModuleManager::Get().LoadModuleChecked<FContentBrowserModule>("ContentBrowser");
+	FContentBrowserModule & ContentBrowserModule = FModuleManager::Get().LoadModuleChecked< FContentBrowserModule >( NAME_ContentBrowser );
 
 #if ENGINE_MAJOR_VERSION >= 5
 	// Register ContentBrowserDelegate Handles for UE5 EA
@@ -86,11 +92,11 @@ void FGitSourceControlModule::ShutdownModule()
 	GitSourceControlProvider.Close();
 
 	// unbind provider from editor
-	IModularFeatures::Get().UnregisterModularFeature("SourceControl", &GitSourceControlProvider);
+    IModularFeatures::Get().UnregisterModularFeature( NAME_SourceControl, &GitSourceControlProvider );
 
 
 	// Unregister ContentBrowserDelegate Handles
-    FContentBrowserModule & ContentBrowserModule = FModuleManager::Get().LoadModuleChecked< FContentBrowserModule >( "ContentBrowser" );
+    FContentBrowserModule & ContentBrowserModule = FModuleManager::Get().LoadModuleChecked< FContentBrowserModule >( NAME_ContentBrowser );
 #if ENGINE_MAJOR_VERSION >= 5
 	ContentBrowserModule.GetOnFilterChanged().Remove( CbdHandle_OnFilterChanged );
 	ContentBrowserModule.GetOnSearchBoxChanged().Remove( CbdHandle_OnSearchBoxChanged );
