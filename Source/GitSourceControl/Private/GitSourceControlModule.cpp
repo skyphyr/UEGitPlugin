@@ -96,7 +96,7 @@ void FGitSourceControlModule::ShutdownModule()
 
 
 	// Unregister ContentBrowserDelegate Handles
-    FContentBrowserModule & ContentBrowserModule = FModuleManager::Get().LoadModuleChecked< FContentBrowserModule >( NAME_ContentBrowser );
+    FContentBrowserModule & ContentBrowserModule = FModuleManager::Get().GetModuleChecked< FContentBrowserModule >( NAME_ContentBrowser );
 #if ENGINE_MAJOR_VERSION >= 5
 	ContentBrowserModule.GetOnFilterChanged().Remove( CbdHandle_OnFilterChanged );
 	ContentBrowserModule.GetOnSearchBoxChanged().Remove( CbdHandle_OnSearchBoxChanged );
