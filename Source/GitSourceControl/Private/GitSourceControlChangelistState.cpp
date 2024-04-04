@@ -33,15 +33,37 @@ const FDateTime& FGitSourceControlChangelistState::GetTimeStamp() const
 	return TimeStamp;
 }
 
+#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 4
+const TArray<FSourceControlStateRef> FGitSourceControlChangelistState::GetFilesStates() const
+#else
 const TArray<FSourceControlStateRef>& FGitSourceControlChangelistState::GetFilesStates() const
+#endif
 {
 	return Files;
 }
 
+#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 4
+int32 FGitSourceControlChangelistState::GetFilesStatesNum() const
+{
+	return Files.Num();
+}
+#endif
+
+#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 4
+const TArray<FSourceControlStateRef> FGitSourceControlChangelistState::GetShelvedFilesStates() const
+#else
 const TArray<FSourceControlStateRef>& FGitSourceControlChangelistState::GetShelvedFilesStates() const
+#endif
 {
 	return ShelvedFiles;
 }
+
+#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 4
+int32 FGitSourceControlChangelistState::GetShelvedFilesStatesNum() const
+{
+	return ShelvedFiles.Num();
+}
+#endif
 
 FSourceControlChangelistRef FGitSourceControlChangelistState::GetChangelist() const
 {
