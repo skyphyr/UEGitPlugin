@@ -1773,7 +1773,7 @@ bool RunDumpToFile(const FString& InPathToGitBinary, const FString& InRepository
 	FullCommand += TEXT("cat-file --filters ");
 
 	// Append to the command the parameter
-	FullCommand += InParameter;
+	FullCommand += TEXT("\"") + InParameter + TEXT("\"");
 
 	const bool bLaunchDetached = false;
 	const bool bLaunchHidden = true;
