@@ -7,6 +7,7 @@
 
 #include "GitSourceControlRevision.h"
 #include "GitSourceControlState.h"
+#include "UObject/ObjectSaveContext.h"
 
 class FGitSourceControlState;
 
