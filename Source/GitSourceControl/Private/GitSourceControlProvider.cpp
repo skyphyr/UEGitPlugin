@@ -29,6 +29,7 @@
 #include "Misc/EngineVersion.h"
 #include "Misc/MessageDialog.h"
 #include "UObject/ObjectSaveContext.h"
+#include "UObject/Package.h"
 
 #define LOCTEXT_NAMESPACE "GitSourceControl"
 
