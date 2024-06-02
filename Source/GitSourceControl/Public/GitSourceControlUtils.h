@@ -207,6 +207,21 @@ bool ListFilesInDirectoryRecurse(const FString& InPathToGitBinary, const FString
 bool RunCommit(const FString& InPathToGitBinary, const FString& InRepositoryRoot, const TArray<FString>& InParameters, const TArray<FString>& InFiles, TArray<FString>& OutResults, TArray<FString>& OutErrorMessages);
 
 /**
+ * @brief Detects how to parse the result of a "status" command to get workspace file states
+ *
+ *  It is either a command for a whole directory (ie. "Content/", in case of "Submit to Revision Control" menu),
+ * or for one or more files all on a same directory (by design, since we group files by directory in RunUpdateStatus())
+ *
+ * @param[in]	InPathToGitBinary	The path to the Git binary
+ * @param[in]	InRepositoryRoot	The Git repository from where to run the command - usually the Game directory (can be empty)
+ * @param[in]	InUsingLfsLocking	Tells if using the Git LFS file Locking workflow
+ * @param[in]	InFiles				List of files in a directory, or the path to the directory itself (never empty).
+ * @param[out]	InResults			Results from the "status" command
+ * @param[out]	OutStates			States of files for witch the status has been gathered (distinct than InFiles in case of a "directory status")
+ */
+void ParseStatusResults( const FString & InPathToGitBinary, const FString & InRepositoryRoot, const bool InUsingLfsLocking, const TArray< FString > & InFiles, const TMap< FString, FString > & InResults, TMap< FString, FGitSourceControlState > & OutStates );
+
+/**
  * Checks remote branches to see file differences.
  *
  * @param	CurrentBranchName The current branch we are on.
