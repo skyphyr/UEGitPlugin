@@ -61,7 +61,7 @@ namespace GitSourceControlUtils
 		* @param AbsoluteFilePaths		The list of files in the SC operation
 		* @param PathToRepositoryRoot	The original path to the repository root (used by default)
 		*/
-	FString ChangeRepositoryRootIfSubmodule(const TArray<FString>& AbsoluteFilePaths, const FString& PathToRepositoryRoot);
+	FString ChangeRepositoryRootIfSubmodule(TArray<FString>& AbsoluteFilePaths, const FString& PathToRepositoryRoot);
 
 	/**
 		*  Returns an updated repo root if all selected file is in a plugin subfolder, and the plugin subfolder is a git repo
@@ -70,7 +70,7 @@ namespace GitSourceControlUtils
 		* @param AbsoluteFilePath		The file in the SC operation
 		* @param PathToRepositoryRoot	The original path to the repository root (used by default)
 		*/
-	FString ChangeRepositoryRootIfSubmodule(const FString& AbsoluteFilePath, const FString& PathToRepositoryRoot);
+	FString ChangeRepositoryRootIfSubmodule(FString & AbsoluteFilePath, const FString& PathToRepositoryRoot);
 
 /**
  * Find the path to the Git binary, looking into a few places (standalone Git install, and other common tools embedding Git)
