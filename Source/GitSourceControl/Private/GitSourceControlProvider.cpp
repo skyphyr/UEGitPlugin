@@ -438,7 +438,7 @@ ECommandResult::Type FGitSourceControlProvider::Execute( const FSourceControlOpe
 		return ECommandResult::Failed;
 	}
 
-	const TArray<FString>& AbsoluteFiles = SourceControlHelpers::AbsoluteFilenames(InFiles);
+	TArray<FString> AbsoluteFiles = SourceControlHelpers::AbsoluteFilenames(InFiles);
 
 	// Query to see if we allow this operation
 	TSharedPtr<IGitSourceControlWorker, ESPMode::ThreadSafe> Worker = CreateWorker(InOperation->GetName());
@@ -458,8 +458,8 @@ ECommandResult::Type FGitSourceControlProvider::Execute( const FSourceControlOpe
 	}
 
 	FGitSourceControlCommand* Command = new FGitSourceControlCommand(InOperation, Worker.ToSharedRef());
-	Command->Files = AbsoluteFiles;
 	Command->UpdateRepositoryRootIfSubmodule(AbsoluteFiles);
+	Command->Files = AbsoluteFiles;
 	Command->OperationCompleteDelegate = InOperationCompleteDelegate;
 
 	TSharedPtr<FGitSourceControlChangelist, ESPMode::ThreadSafe> ChangelistPtr = StaticCastSharedPtr<FGitSourceControlChangelist>(InChangelist);

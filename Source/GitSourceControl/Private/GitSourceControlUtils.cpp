@@ -124,10 +124,13 @@ void FGitLockedFilesCache::OnFileLockChanged(const FString& filePath, const FStr
 
 namespace GitSourceControlUtils
 {
-	FString ChangeRepositoryRootIfSubmodule(const TArray<FString>& AbsoluteFilePaths, const FString& PathToRepositoryRoot)
+	FString ChangeRepositoryRootIfSubmodule(TArray<FString>& AbsoluteFilePaths, const FString& PathToRepositoryRoot)
 	{
 		FString Ret = PathToRepositoryRoot;
 		// note this is not going to support operations where selected files are in different repositories
+
+		TArray<FString> PackageNotIncludedInGit;
+		PackageNotIncludedInGit.Reserve(AbsoluteFilePaths.Num());
 
 		for (auto& FilePath : AbsoluteFilePaths)
 		{
@@ -139,8 +142,10 @@ namespace GitSourceControlUtils
 
 				if (TestPath.IsEmpty())
 				{
-					// early out if empty directory string to prevent infinite loop
-					UE_LOG(LogSourceControl, Error, TEXT("Can't find directory path for file :%s"), *FilePath);
+					// TestPath.IsEmpty() meaning is that FilePath is not git file. So it need to removed to git command file list.
+					PackageNotIncludedInGit.Add(FilePath);
+					UE_LOG(LogSourceControl, Warning, TEXT("Package file to update has included dependent file is not git or Can't find directory path for file : %s"), *FilePath);
+
 					break;
 				}
 				
@@ -151,7 +156,7 @@ namespace GitSourceControlUtils
 					FPaths::NormalizeDirectoryName(RetNormalized);
 					FString PathToRepositoryRootNormalized = PathToRepositoryRoot;
 					FPaths::NormalizeDirectoryName(PathToRepositoryRootNormalized);
-					if (!FPaths::IsSamePath(RetNormalized, PathToRepositoryRootNormalized) && Ret != GitTestPath)
+					if (!FPaths::IsSamePath(RetNormalized, PathToRepositoryRootNormalized) && Ret != FPaths::GetPath(GitTestPath))
 					{
 						UE_LOG(LogSourceControl, Error, TEXT("Selected files belong to different submodules"));
 						return PathToRepositoryRoot;
@@ -161,10 +166,18 @@ namespace GitSourceControlUtils
 				}
 			}
 		}
+		if (!PackageNotIncludedInGit.IsEmpty())
+		{
+			for (const FString& ToRemoveFile : PackageNotIncludedInGit)
+			{
+				AbsoluteFilePaths.Remove(ToRemoveFile);
+			}
+		}
+
 		return Ret;
 	}
 
-	FString ChangeRepositoryRootIfSubmodule(const FString& AbsoluteFilePath, const FString& PathToRepositoryRoot)
+	FString ChangeRepositoryRootIfSubmodule(FString & AbsoluteFilePath, const FString& PathToRepositoryRoot)
 	{
 		TArray<FString> AbsoluteFilePaths = { AbsoluteFilePath };
 		return ChangeRepositoryRootIfSubmodule(AbsoluteFilePaths, PathToRepositoryRoot);
