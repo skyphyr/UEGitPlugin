@@ -1631,6 +1631,16 @@ FString GetFullPathFromGitStatus(const FString& Result, const FString& InReposit
 
 bool UpdateChangelistStateByCommand()
 {
+	// TODO: This is a temporary solution.
+	FModuleManager &ModuleManager = FModuleManager::Get();
+	FName GitModuleName = "GitSourceControl";
+
+	if (!ModuleManager.IsModuleLoaded(GitModuleName))
+	{
+		UE_LOG(LogSourceControl, Warning, TEXT("GitSourceControl module is not loaded."));
+		return false;
+	}
+	
 	FGitSourceControlModule& GitSourceControl = FModuleManager::GetModuleChecked<FGitSourceControlModule>("GitSourceControl");
 	FGitSourceControlProvider& Provider = GitSourceControl.GetProvider();
 	if (!Provider.IsGitAvailable())
