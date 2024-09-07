@@ -2355,7 +2355,7 @@ bool CheckLFSLockable(const FString& InPathToGitBinary, const FString& InReposit
 	for (int i = 0; i < InFiles.Num(); i++)
 	{
 		const FString& Result = Results[i];
-		if (Result.EndsWith("set"))
+		if (Result.EndsWith("set") && !Result.EndsWith("unset"))
 		{
 			const FString FileExt = InFiles[i].RightChop(1); // Remove wildcard (*)
 			LockableTypes.Add(FileExt);
