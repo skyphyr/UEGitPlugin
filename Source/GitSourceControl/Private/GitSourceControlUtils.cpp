@@ -1630,7 +1630,9 @@ bool UpdateChangelistStateByCommand()
 	WorkingChangelist->Files.Empty();
 
 	TArray<FString> Files;
-	Files.Add(TEXT("Content/"));
+    // Provide the full path to the Content directory as relative paths assume the repository root is the project directory,
+    // which may not be true.
+	Files.Add(FPaths::ConvertRelativePathToFull(FPaths::ProjectContentDir()));
 	TArray<FString> Parameters;
 	Parameters.Add(TEXT("--porcelain"));
 	TArray<FString> Results;
