@@ -5,12 +5,13 @@
 
 #pragma once
 
-#include "Widgets/SCompoundWidget.h"
 #include "ISourceControlProvider.h"
+#include "Misc/EngineVersionComparison.h"
 #include "Runtime/Launch/Resources/Version.h"
+#include "Widgets/SCompoundWidget.h"
 
 class SNotificationItem;
-#if ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 2
+#if !UE_VERSION_OLDER_THAN(5, 2, 0)
 namespace ETextCommit { enum Type : int; }
 #else
 namespace ETextCommit { enum Type; }
@@ -52,18 +53,18 @@ private:
 	FReply OnClickedInitializeGitRepository();
 
 	void OnCheckedCreateGitIgnore(ECheckBoxState NewCheckedState);
-	bool bAutoCreateGitIgnore;
+	bool bAutoCreateGitIgnore = true;
 
 	/** Delegates to create a README.md file */
 	void OnCheckedCreateReadme(ECheckBoxState NewCheckedState);
 	bool GetAutoCreateReadme() const;
-	bool bAutoCreateReadme;
+	bool bAutoCreateReadme = true;
 	void OnReadmeContentCommited(const FText& InText, ETextCommit::Type InCommitType);
 	FText GetReadmeContent() const;
 	FText ReadmeContent;
 
 	void OnCheckedCreateGitAttributes(ECheckBoxState NewCheckedState);
-	bool bAutoCreateGitAttributes;
+	bool bAutoCreateGitAttributes = false;
 
 	void OnCheckedUseGitLfsLocking(ECheckBoxState NewCheckedState);
 	ECheckBoxState IsUsingGitLfsLocking() const;
@@ -74,7 +75,7 @@ private:
 
 	void OnCheckedInitialCommit(ECheckBoxState NewCheckedState);
 	bool GetAutoInitialCommit() const;
-	bool bAutoInitialCommit;
+	bool bAutoInitialCommit = true;
 	void OnInitialCommitMessageCommited(const FText& InText, ETextCommit::Type InCommitType);
 	FText GetInitialCommitMessage() const;
 	FText InitialCommitMessage;

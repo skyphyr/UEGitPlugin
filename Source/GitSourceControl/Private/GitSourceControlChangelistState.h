@@ -2,6 +2,7 @@
 #include "GitSourceControlChangelist.h"
 #include "ISourceControlChangelistState.h"
 #include "ISourceControlState.h"
+#include "Misc/EngineVersionComparison.h"
 
 class FGitSourceControlChangelistState : public ISourceControlChangelistState
 {
@@ -56,7 +57,7 @@ public:
 	 */
 	virtual const FDateTime& GetTimeStamp() const override;
 
-#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 4
+#if !UE_VERSION_OLDER_THAN(5, 4, 0)
 	virtual const TArray<FSourceControlStateRef> GetFilesStates() const override;
 	virtual int32 GetFilesStatesNum() const override;
 
@@ -70,15 +71,14 @@ public:
 
 	virtual FSourceControlChangelistRef GetChangelist() const override;
 
-public:
-	FGitSourceControlChangelist Changelist;
+	FGitSourceControlChangelist Changelist = FGitSourceControlChangelist();
 
-	FString Description;
+	FString Description = FString();
 
-	TArray<FSourceControlStateRef> Files;
+	TArray<FSourceControlStateRef> Files = TArray<FSourceControlStateRef>();
 	
-	TArray<FSourceControlStateRef> ShelvedFiles;
+	TArray<FSourceControlStateRef> ShelvedFiles = TArray<FSourceControlStateRef>();
 
 	/** The timestamp of the last update */
-	FDateTime TimeStamp;
+	FDateTime TimeStamp = FDateTime();
 };

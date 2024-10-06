@@ -26,7 +26,7 @@
 #include "HAL/FileManager.h"
 #include "Interfaces/IPluginManager.h"
 #include "Misc/App.h"
-#include "Misc/EngineVersion.h"
+#include "Misc/EngineVersionComparison.h"
 #include "Misc/MessageDialog.h"
 #include "UObject/ObjectSaveContext.h"
 #include "UObject/Package.h"
@@ -359,7 +359,7 @@ ECommandResult::Type FGitSourceControlProvider::GetState( const TArray<FString>&
 	return ECommandResult::Succeeded;
 }
 
-#if ENGINE_MAJOR_VERSION >= 5
+#if !UE_VERSION_OLDER_THAN(5, 0, 0)
 ECommandResult::Type FGitSourceControlProvider::GetState(const TArray<FSourceControlChangelistRef>& InChangelists, TArray<FSourceControlChangelistStateRef>& OutState, EStateCacheUsage::Type InStateCacheUsage)
 {
 	if (!IsEnabled())
@@ -426,7 +426,7 @@ void FGitSourceControlProvider::UnregisterSourceControlStateChanged_Handle( FDel
 	OnSourceControlStateChanged.Remove( Handle );
 }
 
-#if ENGINE_MAJOR_VERSION < 5
+#if UE_VERSION_OLDER_THAN(5, 0, 0)
 ECommandResult::Type FGitSourceControlProvider::Execute( const FSourceControlOperationRef& InOperation, const TArray<FString>& InFiles, EConcurrency::Type InConcurrency, const FSourceControlOperationComplete& InOperationCompleteDelegate )
 #else
 ECommandResult::Type FGitSourceControlProvider::Execute( const FSourceControlOperationRef& InOperation, FSourceControlChangelistPtr InChangelist, const TArray<FString>& InFiles, EConcurrency::Type InConcurrency, const FSourceControlOperationComplete& InOperationCompleteDelegate )
@@ -470,23 +470,21 @@ ECommandResult::Type FGitSourceControlProvider::Execute( const FSourceControlOpe
 	{
 		Command->bAutoDelete = false;
 
-#if UE_BUILD_DEBUG
-		UE_LOG(LogSourceControl, Log, TEXT("ExecuteSynchronousCommand(%s)"), *InOperation->GetName().ToString());
-#endif
+		UE_LOG(LogSourceControl, Verbose, TEXT("ExecuteSynchronousCommand(%s)"), *InOperation->GetName().ToString());
+
 		return ExecuteSynchronousCommand(*Command, InOperation->GetInProgressString(), false);
 	}
 	else
 	{
 		Command->bAutoDelete = true;
 
-#if UE_BUILD_DEBUG
-		UE_LOG(LogSourceControl, Log, TEXT("IssueAsynchronousCommand(%s)"), *InOperation->GetName().ToString());
-#endif
-		return IssueCommand(*Command);
+		UE_LOG(LogSourceControl, Verbose, TEXT("IssueAsynchronousCommand(%s)"), *InOperation->GetName().ToString());
+
+	    return IssueCommand(*Command);
 	}
 }
 
-#if ENGINE_MAJOR_VERSION < 5
+#if UE_VERSION_OLDER_THAN(5, 0, 0)
 bool FGitSourceControlProvider::CanCancelOperation( const FSourceControlOperationRef& InOperation ) const
 #else
 bool FGitSourceControlProvider::CanCancelOperation( const FSourceControlOperationRef& InOperation ) const
@@ -509,7 +507,7 @@ bool FGitSourceControlProvider::CanCancelOperation( const FSourceControlOperatio
 	return false;
 }
 
-#if ENGINE_MAJOR_VERSION < 5
+#if UE_VERSION_OLDER_THAN(5, 0, 0)
 void FGitSourceControlProvider::CancelOperation( const FSourceControlOperationRef& InOperation )
 #else
 void FGitSourceControlProvider::CancelOperation( const FSourceControlOperationRef& InOperation )
@@ -542,7 +540,7 @@ bool FGitSourceControlProvider::UsesCheckout() const
 	return bUsingGitLfsLocking; // Git LFS Lock uses read-only state
 }
 
-#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 1
+#if !UE_VERSION_OLDER_THAN(5, 1, 0)
 bool FGitSourceControlProvider::UsesFileRevisions() const
 {
 	return true;
@@ -559,7 +557,7 @@ TOptional<int> FGitSourceControlProvider::GetNumLocalChanges() const
 }
 #endif
 
-#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 2
+#if !UE_VERSION_OLDER_THAN(5, 2, 0)
 bool FGitSourceControlProvider::AllowsDiffAgainstDepot() const
 {
 	return true;
@@ -576,7 +574,7 @@ bool FGitSourceControlProvider::UsesSnapshots() const
 }
 #endif
 
-#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 3
+#if !UE_VERSION_OLDER_THAN(5, 3, 0)
 bool FGitSourceControlProvider::CanExecuteOperation(const FSourceControlOperationRef& InOperation) const {
 	return WorkersMap.Find(InOperation->GetName()) != nullptr;
 }
@@ -638,7 +636,7 @@ void FGitSourceControlProvider::UpdateRepositoryStatus(const class FGitSourceCon
 
 void FGitSourceControlProvider::Tick()
 {
-#if ENGINE_MAJOR_VERSION < 5
+#if !UE_VERSION_OLDER_THAN(5, 0, 0)
 	bool bStatesUpdated = false;
 #else
 	bool bStatesUpdated = TicksUntilNextForcedUpdate == 1;
@@ -713,7 +711,7 @@ TArray< TSharedRef<ISourceControlLabel> > FGitSourceControlProvider::GetLabels( 
 	return Tags;
 }
 
-#if ENGINE_MAJOR_VERSION >= 5
+#if !UE_VERSION_OLDER_THAN(5, 0, 0)
 TArray<FSourceControlChangelistRef> FGitSourceControlProvider::GetChangelists( EStateCacheUsage::Type InStateCacheUsage )
 {
 	if (!IsEnabled())

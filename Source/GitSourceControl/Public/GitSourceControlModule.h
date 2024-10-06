@@ -141,14 +141,14 @@ private:
 	void DiffAgainstOriginBranch(UObject* InObject, const FString& InPackagePath, const FString& InPackageName, const FString& BranchName) const;
 
 	/** The one and only Git revision control provider */
-	FGitSourceControlProvider GitSourceControlProvider;
+	FGitSourceControlProvider GitSourceControlProvider = FGitSourceControlProvider();
 
 	/** The settings for Git revision control */
-	FGitSourceControlSettings GitSourceControlSettings;
+	FGitSourceControlSettings GitSourceControlSettings = FGitSourceControlSettings();
 
 	static TArray<FString> EmptyStringArray;
 
-#if ENGINE_MAJOR_VERSION >= 5
+#if !UE_VERSION_OLDER_THAN(5, 0, 0)
 	// ContentBrowserDelegate Handles
 	FDelegateHandle CbdHandle_OnFilterChanged;
 	FDelegateHandle CbdHandle_OnSearchBoxChanged;

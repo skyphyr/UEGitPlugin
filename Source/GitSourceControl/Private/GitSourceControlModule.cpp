@@ -6,7 +6,7 @@
 #include "GitSourceControlModule.h"
 
 #include "AssetToolsModule.h"
-#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 1
+#if !UE_VERSION_OLDER_THAN(5, 1, 0)
 #include "Styling/AppStyle.h"
 #else
 #include "EditorStyleSet.h"
@@ -29,7 +29,7 @@
 
 #define LOCTEXT_NAMESPACE "GitSourceControl"
 
-TArray<FString> FGitSourceControlModule::EmptyStringArray;
+TArray<FString> FGitSourceControlModule::EmptyStringArray = TArray<FString>();
 
 namespace
 {
@@ -102,7 +102,7 @@ void FGitSourceControlModule::StartupModule()
 
 	FContentBrowserModule & ContentBrowserModule = FModuleManager::Get().LoadModuleChecked< FContentBrowserModule >( NAME_ContentBrowser );
 
-#if ENGINE_MAJOR_VERSION >= 5
+#if !UE_VERSION_OLDER_THAN(5, 0, 0)
 	// Register ContentBrowserDelegate Handles for UE5 EA
 	// At the time of writing this UE5 is in Early Access and has no support for revision control yet. So instead we hook into the content browser..
 	// .. and force a state update on the next tick for revision control. Usually the contentbrowser assets will request this themselves, but that's not working
@@ -131,7 +131,7 @@ void FGitSourceControlModule::ShutdownModule()
 
 	// Unregister ContentBrowserDelegate Handles
     FContentBrowserModule & ContentBrowserModule = FModuleManager::Get().GetModuleChecked< FContentBrowserModule >( NAME_ContentBrowser );
-#if ENGINE_MAJOR_VERSION >= 5
+#if !UE_VERSION_OLDER_THAN(5, 0, 0)
 	ContentBrowserModule.GetOnFilterChanged().Remove( CbdHandle_OnFilterChanged );
 	ContentBrowserModule.GetOnSearchBoxChanged().Remove( CbdHandle_OnSearchBoxChanged );
 	ContentBrowserModule.GetOnAssetSelectionChanged().Remove( CbdHandle_OnAssetSelectionChanged );
@@ -189,7 +189,7 @@ void FGitSourceControlModule::CreateGitContentBrowserAssetMenu(FMenuBuilder& Men
 	MenuBuilder.AddMenuEntry(
 		FText::Format(LOCTEXT("StatusBranchDiff", "Diff against status branch"), FText::FromString(BranchName)),
 		FText::Format(LOCTEXT("StatusBranchDiffDesc", "Compare this asset to the latest status branch version"), FText::FromString(BranchName)),
-#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 1
+#if !UE_VERSION_OLDER_THAN(5, 1, 0)
 		FSlateIcon(FAppStyle::GetAppStyleSetName(), "SourceControl.Actions.Diff"),
 #else
 		FSlateIcon(FEditorStyle::GetStyleSetName(), "SourceControl.Actions.Diff"),
@@ -234,7 +234,7 @@ void FGitSourceControlModule::DiffAgainstOriginBranch( UObject * InObject, const
 	{
 		// Get the file name of package
 		FString RelativeFileName;
-#if ENGINE_MAJOR_VERSION >= 5
+#if !UE_VERSION_OLDER_THAN(5, 0, 0)
 		if (FPackageName::DoesPackageExist(InPackagePath, &RelativeFileName))
 #else
 		if (FPackageName::DoesPackageExist(InPackagePath, nullptr, &RelativeFileName))

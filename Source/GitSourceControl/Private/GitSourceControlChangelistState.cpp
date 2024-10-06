@@ -33,7 +33,7 @@ const FDateTime& FGitSourceControlChangelistState::GetTimeStamp() const
 	return TimeStamp;
 }
 
-#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 4
+#if !UE_VERSION_OLDER_THAN(5, 4, 0)
 const TArray<FSourceControlStateRef> FGitSourceControlChangelistState::GetFilesStates() const
 #else
 const TArray<FSourceControlStateRef>& FGitSourceControlChangelistState::GetFilesStates() const
@@ -42,14 +42,14 @@ const TArray<FSourceControlStateRef>& FGitSourceControlChangelistState::GetFiles
 	return Files;
 }
 
-#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 4
+#if !UE_VERSION_OLDER_THAN(5, 4, 0)
 int32 FGitSourceControlChangelistState::GetFilesStatesNum() const
 {
 	return Files.Num();
 }
 #endif
 
-#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 4
+#if !UE_VERSION_OLDER_THAN(5, 4, 0)
 const TArray<FSourceControlStateRef> FGitSourceControlChangelistState::GetShelvedFilesStates() const
 #else
 const TArray<FSourceControlStateRef>& FGitSourceControlChangelistState::GetShelvedFilesStates() const
@@ -58,7 +58,7 @@ const TArray<FSourceControlStateRef>& FGitSourceControlChangelistState::GetShelv
 	return ShelvedFiles;
 }
 
-#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 4
+#if !UE_VERSION_OLDER_THAN(5, 4, 0)
 int32 FGitSourceControlChangelistState::GetShelvedFilesStatesNum() const
 {
 	return ShelvedFiles.Num();

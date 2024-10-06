@@ -14,14 +14,10 @@
 #include "GitSourceControlUtils.h"
 #include "SourceControlHelpers.h"
 #include "Logging/MessageLog.h"
+#include "Misc/EngineVersionComparison.h"
 #include "Misc/MessageDialog.h"
 #include "HAL/PlatformProcess.h"
 #include "GenericPlatform/GenericPlatformFile.h"
-#if ENGINE_MAJOR_VERSION >= 5
-#include "HAL/PlatformFileManager.h"
-#else
-#include "HAL/PlatformFilemanager.h"
-#endif
 
 #include <thread>
 
@@ -305,7 +301,7 @@ bool FGitCheckInWorker::Execute(FGitSourceControlCommand& InCommand)
 																				   "open, files cannot always be updated.\n\n"
 																				   "Please exit the editor, and update the project again."));
 							FText PushFailTitle(LOCTEXT("GitPush_OutOfDate_Title", "Git Pull Required"));
-#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 3
+#if !UE_VERSION_OLDER_THAN(5, 3, 0)
 							FMessageDialog::Open(EAppMsgType::Ok, PushFailMessage, PushFailTitle);
 #else
 							FMessageDialog::Open(EAppMsgType::Ok, PushFailMessage, &PushFailTitle);

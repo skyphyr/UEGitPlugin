@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "ISourceControlChangelist.h"
+#include "Misc/EngineVersionComparison.h"
 #include "Runtime/Launch/Resources/Version.h"
 
 class FGitSourceControlChangelist : public ISourceControlChangelist
@@ -28,7 +29,7 @@ public:
 		return ChangelistName != InOther.ChangelistName;
 	}
 
-#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 3
+#if !UE_VERSION_OLDER_THAN(5, 3, 0)
 	virtual bool IsDefault() const override
 	{
 		return ChangelistName == WorkingChangelist.ChangelistName;
@@ -61,7 +62,7 @@ public:
 		return ChangelistName;
 	}
 
-#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 3
+#if !UE_VERSION_OLDER_THAN(5, 3, 0)
 	virtual FString GetIdentifier() const override
 	{
 		return ChangelistName;

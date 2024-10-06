@@ -11,24 +11,19 @@
 #include "GitSourceControlProvider.h"
 #include "HAL/PlatformProcess.h"
 
-#include "HAL/PlatformFile.h"
-#if ENGINE_MAJOR_VERSION >= 5
+#if !UE_VERSION_OLDER_THAN(5, 0, 0)
 #include "HAL/PlatformFileManager.h"
 #else
 #include "HAL/PlatformFilemanager.h"
 #endif
 
-#include "HAL/PlatformProcess.h"
 #include "Interfaces/IPluginManager.h"
 #include "ISourceControlModule.h"
 #include "Misc/FileHelper.h"
 #include "Misc/Paths.h"
-#include "ISourceControlModule.h"
-#include "GitSourceControlModule.h"
 #include "GitSourceControlChangelistState.h"
 #include "Logging/MessageLog.h"
 #include "Misc/DateTime.h"
-#include "Misc/ScopeLock.h"
 #include "Misc/Timespan.h"
 
 #include "PackageTools.h"
@@ -39,9 +34,6 @@
 #include "Async/Async.h"
 #include "UObject/Linker.h"
 
-#ifndef GIT_DEBUG_STATUS
-#define GIT_DEBUG_STATUS 0
-#endif
 
 #define LOCTEXT_NAMESPACE "GitSourceControl"
 
@@ -229,9 +221,7 @@ bool RunCommandInternalRaw(const FString& InCommand, const FString& InPathToGitB
 
 	FullCommand += LogableCommand;
 
-#if UE_BUILD_DEBUG
-	UE_LOG(LogSourceControl, Log, TEXT("RunCommand: 'git %s'"), *LogableCommand);
-#endif
+	UE_LOG(LogSourceControl, Verbose, TEXT("RunCommand: 'git %s'"), *LogableCommand);
 
 	FString PathToGitOrEnvBinary = InPathToGitBinary;
 #if PLATFORM_MAC
@@ -260,14 +250,11 @@ bool RunCommandInternalRaw(const FString& InCommand, const FString& InPathToGitB
 
 	FPlatformProcess::ExecProcess(*PathToGitOrEnvBinary, *FullCommand, &ReturnCode, &OutResults, &OutErrors);
 
-#if UE_BUILD_DEBUG
-	// TODO: add a setting to easily enable Verbose logging
 	UE_LOG(LogSourceControl, Verbose, TEXT("RunCommand(%s):\n%s"), *InCommand, *OutResults);
 	if (ReturnCode != ExpectedReturnCode)
 	{
 		UE_LOG(LogSourceControl, Warning, TEXT("RunCommand(%s) ReturnCode=%d:\n%s"), *InCommand, ReturnCode, *OutErrors);
 	}
-#endif
 
 	// Move push/pull progress information from the error stream to the info stream
 	if(ReturnCode == ExpectedReturnCode && OutErrors.Len() > 0)
@@ -514,7 +501,6 @@ bool CheckGitAvailability(const FString& InPathToGitBinary, FGitVersion* OutVers
 
 void ParseGitVersion(const FString& InVersionString, FGitVersion* OutVersion)
 {
-#if UE_BUILD_DEBUG
 	// Parse "git version 2.31.1.vfs.0.3" into the string "2.31.1.vfs.0.3"
 	const FString& TokenVersionStringPtr = InVersionString.RightChop(12);
 	if (!TokenVersionStringPtr.IsEmpty())
@@ -559,7 +545,6 @@ void ParseGitVersion(const FString& InVersionString, FGitVersion* OutVersion)
 			}
 		}
 	}
-#endif
 }
 
 // Find the root of the Git repository, looking from the provided path and upward in its parent directories.
@@ -825,7 +810,7 @@ bool RunLFSCommand(const FString& InCommand, const FString& InRepositoryRoot, co
 #if PLATFORM_WINDOWS
 	FString LFSLockBinary = FString::Printf(TEXT("%s/git-lfs.exe"), *BaseDir);
 #elif PLATFORM_MAC
-#if ENGINE_MAJOR_VERSION >= 5
+#if !UE_VERSION_OLDER_THAN(5, 0, 0)
 #if PLATFORM_MAC_ARM64
 	FString LFSLockBinary = FString::Printf(TEXT("%s/git-lfs-mac-arm64"), *BaseDir);
 #else
@@ -1098,8 +1083,7 @@ public:
 	{
 		const FString& CommonAncestor = InResults[0]; // 1: The common ancestor of merged branches
 		CommonAncestorFileId = CommonAncestor.Mid(7, 40);
-#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 3
-		CommonAncestorFileId = CommonAncestor.Mid(7, 40);
+#if !UE_VERSION_OLDER_THAN(5, 3, 0)
 		CommonAncestorFilename = CommonAncestor.Right(50);
 
 		if (ensure(InResults.IsValidIndex(2)))
@@ -1112,7 +1096,7 @@ public:
 	}
 
 	FString CommonAncestorFileId; ///< SHA1 Id of the file (warning: not the commit Id)
-#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 3
+#if !UE_VERSION_OLDER_THAN(5, 3, 0)
 	FString RemoteFileId;		///< SHA1 Id of the file (warning: not the commit Id)
 
 	FString CommonAncestorFilename;
@@ -1134,7 +1118,7 @@ static void RunGetConflictStatus(const FString& InPathToGitBinary, const FString
 	{
 		// Parse the unmerge status: extract the base revision (or the other branch?)
 		FGitConflictStatusParser ConflictStatus(Results);
-#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 3
+#if !UE_VERSION_OLDER_THAN(5, 3, 0)
 		InOutFileState.PendingResolveInfo.BaseFile = ConflictStatus.CommonAncestorFilename;
 		InOutFileState.PendingResolveInfo.BaseRevision = ConflictStatus.CommonAncestorFileId;
 		InOutFileState.PendingResolveInfo.RemoteFile = ConflictStatus.RemoteFilename;
@@ -1295,9 +1279,8 @@ static void ParseFileStatusResult(const FString& InPathToGitBinary, const FStrin
 		{
 			// File found in status results; only the case for "changed" files
 			FGitStatusParser StatusParser(Result);
-#if UE_BUILD_DEBUG && GIT_DEBUG_STATUS
-			UE_LOG(LogSourceControl, Log, TEXT("Status(%s) = '%s' => File:%d, Tree:%d"), *File, *Result, static_cast<int>(StatusParser.FileState), static_cast<int>(StatusParser.TreeState));
-#endif
+
+			UE_LOG(LogSourceControl, VeryVerbose, TEXT("Status(%s) = '%s' => File:%d, Tree:%d"), *File, *Result, static_cast<int>(StatusParser.FileState), static_cast<int>(StatusParser.TreeState));
 
 			FileState.State.FileState = StatusParser.FileState;
 			FileState.State.TreeState = StatusParser.TreeState;
@@ -1315,17 +1298,14 @@ static void ParseFileStatusResult(const FString& InPathToGitBinary, const FStrin
 			{
 				// usually means the file is unchanged,
 				FileState.State.TreeState = ETreeState::Unmodified;
-#if UE_BUILD_DEBUG && GIT_DEBUG_STATUS
-				UE_LOG(LogSourceControl, Log, TEXT("Status(%s) not found but exists => unchanged"), *File);
-#endif
+
+				UE_LOG(LogSourceControl, VeryVerbose, TEXT("Status(%s) not found but exists => unchanged"), *File);
 			}
 			else
 			{
 				// but also the case for newly created content: there is no file on disk until the content is saved for the first time
-				FileState.State.TreeState = ETreeState::NotInRepo;
-#if UE_BUILD_DEBUG && GIT_DEBUG_STATUS
-				UE_LOG(LogSourceControl, Log, TEXT("Status(%s) not found and does not exists => new/not controled"), *File);
-#endif
+				FileState.State.TreeState = ETreeState::Untracked;
+				UE_LOG(LogSourceControl, VeryVerbose, TEXT("Status(%s) not found and does not exists => new/not controled"), *File);
 			}
 		}
 		if (!InUsingLfsLocking)
@@ -1362,9 +1342,8 @@ static void ParseFileStatusResult(const FString& InPathToGitBinary, const FStrin
 				else
 				{
 					FileState.State.LockState = ELockState::NotLocked;
-#if UE_BUILD_DEBUG && GIT_DEBUG_STATUS
-					UE_LOG(LogSourceControl, Log, TEXT("Status(%s) Not Locked"), *File);
-#endif
+
+				    UE_LOG(LogSourceControl, VeryVerbose, TEXT("Status(%s) Not Locked"), *File);
 				}
 			}
 			else
@@ -1373,9 +1352,7 @@ static void ParseFileStatusResult(const FString& InPathToGitBinary, const FStrin
 			}
 			
 			
-#if UE_BUILD_DEBUG && GIT_DEBUG_STATUS
-			UE_LOG(LogSourceControl, Log, TEXT("Status(%s) Locked by '%s'"), *File, *FileState.State.LockUser);
-#endif
+			UE_LOG(LogSourceControl, VeryVerbose, TEXT("Status(%s) Locked by '%s'"), *File, *FileState.State.LockUser);
 		}
 		OutStates.Add(File, MoveTemp(FileState));
 	}
@@ -1540,9 +1517,8 @@ bool GetAllLocks(const FString& InRepositoryRoot, const FString& GitBinaryFallba
 			for (const FString& Result : Results)
 			{
 				FGitLfsLocksParser LockFile(InRepositoryRoot, Result);
-#if UE_BUILD_DEBUG && GIT_DEBUG_STATUS
-				UE_LOG(LogSourceControl, Log, TEXT("LockedFile(%s, %s)"), *LockFile.LocalFilename, *LockFile.LockUser);
-#endif
+
+				UE_LOG(LogSourceControl, Verbose, TEXT("LockedFile(%s, %s)"), *LockFile.LocalFilename, *LockFile.LockUser);
 				OutLocks.Add(MoveTemp(LockFile.LocalFilename), MoveTemp(LockFile.LockUser));
 			}
 			FGitLockedFilesCache::LastUpdated = CurrentTime;
@@ -1569,9 +1545,9 @@ bool GetAllLocks(const FString& InRepositoryRoot, const FString& GitBinaryFallba
 			for (const FString& Result : Results)
 			{
 				FGitLfsLocksParser LockFile(InRepositoryRoot, Result);
-	#if UE_BUILD_DEBUG && GIT_DEBUG_STATUS
-				UE_LOG(LogSourceControl, Log, TEXT("LockedFile(%s, %s)"), *LockFile.LocalFilename, *LockFile.LockUser);
-	#endif
+	
+    			UE_LOG(LogSourceControl, Verbose, TEXT("LockedFile(%s, %s)"), *LockFile.LocalFilename, *LockFile.LockUser);
+
 				// Only update remote locks
 				if (LockFile.LockUser != LockUser)
 				{
@@ -1587,10 +1563,10 @@ bool GetAllLocks(const FString& InRepositoryRoot, const FString& GitBinaryFallba
 			for (const FString& Result : Results)
 			{
 				FGitLfsLocksParser LockFile(InRepositoryRoot, Result);
-	#if UE_BUILD_DEBUG && GIT_DEBUG_STATUS
-				UE_LOG(LogSourceControl, Log, TEXT("LockedFile(%s, %s)"), *LockFile.LocalFilename, *LockFile.LockUser);
-	#endif
-				// Only update local locks
+
+			    UE_LOG(LogSourceControl, Verbose, TEXT("LockedFile(%s, %s)"), *LockFile.LocalFilename, *LockFile.LockUser);
+
+			    // Only update local locks
 				if (LockFile.LockUser == LockUser)
 				{
 					OutLocks.Add(MoveTemp(LockFile.LocalFilename), MoveTemp(LockFile.LockUser));
@@ -1651,8 +1627,8 @@ bool UpdateChangelistStateByCommand()
 	}
 	TSharedRef<FGitSourceControlChangelistState, ESPMode::ThreadSafe> StagedChangelist = Provider.GetStateInternal(FGitSourceControlChangelist::StagedChangelist);
 	TSharedRef<FGitSourceControlChangelistState, ESPMode::ThreadSafe> WorkingChangelist = Provider.GetStateInternal(FGitSourceControlChangelist::WorkingChangelist);
-	StagedChangelist->Files.RemoveAll([](const FSourceControlStateRef& InState){ return true; });
-	WorkingChangelist->Files.RemoveAll([](const FSourceControlStateRef& InState){ return true; });
+	StagedChangelist->Files.Empty();
+	WorkingChangelist->Files.Empty();
 
 	TArray<FString> Files;
 	Files.Add(TEXT("Content/"));
@@ -1823,7 +1799,7 @@ bool RunDumpToFile(const FString& InPathToGitBinary, const FString& InRepository
         }
     #endif
 
-#if ENGINE_MAJOR_VERSION == 5 && 0
+#if 0
 	FProcHandle ProcessHandle = FPlatformProcess::CreateProc(*PathToGitOrEnvBinary, *FullCommand, bLaunchDetached, bLaunchHidden, bLaunchReallyHidden, nullptr, 0, *InRepositoryRoot, PipeWrite, nullptr, nullptr);
 #else
 	FProcHandle ProcessHandle = FPlatformProcess::CreateProc(*PathToGitOrEnvBinary, *FullCommand, bLaunchDetached, bLaunchHidden, bLaunchReallyHidden, nullptr, 0, *InRepositoryRoot, PipeWrite);
@@ -2408,7 +2384,7 @@ bool PullOrigin(const FString& InPathToGitBinary, const FString& InPathToReposit
 																	"differences.\n\n"
 																	"Please exit the editor, and update the project."));
 		FText PullFailTitle(LOCTEXT("Git_NeedBinariesUpdate_Title", "Binaries Update Required"));
-#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 3
+#if !UE_VERSION_OLDER_THAN(5, 3, 0)
 		FMessageDialog::Open(EAppMsgType::Ok, PullFailMessage, PullFailTitle);
 #else		
 		FMessageDialog::Open(EAppMsgType::Ok, PullFailMessage, &PullFailTitle);
