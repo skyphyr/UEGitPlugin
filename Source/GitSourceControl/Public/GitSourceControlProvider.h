@@ -305,6 +305,4 @@ private:
 
 	/** Array of branch name patterns for status queries */
 	TArray<FString> StatusBranchNamePatternsInternal;
-		
-	class FGitSourceControlRunner* Runner = nullptr;
 };

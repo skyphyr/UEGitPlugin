@@ -14,7 +14,6 @@
 #include "GitSourceControlModule.h"
 #include "GitSourceControlUtils.h"
 #include "SGitSourceControlSettings.h"
-#include "GitSourceControlRunner.h"
 #include "GitSourceControlChangelistState.h"
 #include "Logging/MessageLog.h"
 #include "ScopedSourceControlProgress.h"
@@ -168,7 +167,6 @@ void FGitSourceControlProvider::CheckRepositoryStatus()
 				{
 					GitSourceControlUtils::UpdateCachedStates(Results);
 				}
-				Runner = new FGitSourceControlRunner();
 				bGitRepositoryFound = true;
 			};
 			if (FApp::IsUnattended() || IsRunningCommandlet())
@@ -239,11 +237,6 @@ void FGitSourceControlProvider::Close()
 	bGitRepositoryFound = false;
 	UserName.Empty();
 	UserEmail.Empty();
-	if (Runner)
-	{
-		delete Runner;
-		Runner = nullptr;
-	}
 }
 
 TSharedRef<FGitSourceControlState, ESPMode::ThreadSafe> FGitSourceControlProvider::GetStateInternal(const FString& Filename)
