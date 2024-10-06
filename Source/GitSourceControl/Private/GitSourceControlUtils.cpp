@@ -1338,6 +1338,8 @@ static void ParseFileStatusResult(const FString& InPathToGitBinary, const FStrin
 					{
 						FileState.State.LockState = ELockState::LockedOther;
 					}
+				    
+        			UE_LOG(LogSourceControl, VeryVerbose, TEXT("Status(%s) Locked by '%s'"), *File, *FileState.State.LockUser);
 				}
 				else
 				{
@@ -1350,9 +1352,6 @@ static void ParseFileStatusResult(const FString& InPathToGitBinary, const FStrin
 			{
 				FileState.State.LockState = ELockState::Unlockable;
 			}
-			
-			
-			UE_LOG(LogSourceControl, VeryVerbose, TEXT("Status(%s) Locked by '%s'"), *File, *FileState.State.LockUser);
 		}
 		OutStates.Add(File, MoveTemp(FileState));
 	}
