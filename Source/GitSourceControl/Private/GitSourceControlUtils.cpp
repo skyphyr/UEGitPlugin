@@ -965,18 +965,18 @@ R  Content/Textures/T_Perlin_Noise_M.uasset -> Content/Textures/T_Perlin_Noise_M
 static FString FilenameFromGitStatus(const FString& InResult)
 {
 	int32 RenameIndex;
-	FString result;
+	FString Result;
 	if (InResult.FindLastChar('>', RenameIndex))
 	{
 		// Extract only the second part of a rename "from -> to"
-		result = InResult.RightChop(RenameIndex + 2);
+		Result = InResult.RightChop(RenameIndex + 2);
 	}
 	else
 	{
 		// Extract the relative filename from the Git status result (after the 2 letters status and 1 space)
-		result = InResult.RightChop(3);
+		Result = InResult.RightChop(3);
 	}
-	return result.TrimQuotes();
+	return Result.TrimQuotes();
 }
 
 /** Match the relative filename of a Git status result with a provided absolute filename */
